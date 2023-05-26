@@ -338,6 +338,31 @@ class StubgenUtilSuite(unittest.TestCase):
             ],
         )
 
+        # FixedSize is used by pybind11 for fixed-size arrays
+        assert_equal(
+            infer_sig_from_docstring(
+                "\nfunc(x: Annotated[List[str], FixedSize(3)]) -> int", "func"
+            ),
+            [
+                FunctionSig(
+                    name="func",
+                    args=[ArgSig(name="x", type="Annotated[[List[str], FixedSize(3)]")],
+                    ret_type="int",
+                )
+            ],
+        )
+
+        assert_equal(
+            infer_sig_from_docstring("\nfunc(x: Annotated[str, 'foo']) -> int", "func"),
+            [
+                FunctionSig(
+                    name="func",
+                    args=[ArgSig(name="x", type="Annotated[[List[str], 'foo']")],
+                    ret_type="int",
+                )
+            ],
+        )
+
         assert_equal(
             infer_sig_from_docstring("\nfunc(x: foo.bar)", "func"),
             [FunctionSig(name="func", args=[ArgSig(name="x", type="foo.bar")], ret_type="Any")],
@@ -1487,6 +1512,7 @@ class IsValidTypeSuite(unittest.TestCase):
         assert is_valid_type("foo.bar")
         assert is_valid_type("List[int]")
         assert is_valid_type("Dict[str, int]")
+        assert is_valid_type("Annotated[List[int], 'foo']")
         assert is_valid_type("None")
         assert not is_valid_type("foo-bar")
         assert not is_valid_type("x->y")
